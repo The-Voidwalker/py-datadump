@@ -25,6 +25,7 @@ PASSWORD = "PASSWORD HERE"  # If you set this value, please mind who can read th
 # DataDump handling
 DELETE_EXISTING = True  # Delete existing dumps that prevent us from generating new ones
 DELETE_AFTER_DOWNLOAD = False  # Delete the dumps we generate once they are downloaded
+WAIT_FOR_DUMPS = 30  # Seconds to wait for dumps to generate
 
 # Retry on connection failure settings
 MAX_RETRIES = 5  # Maximum attempts to retry on a connection error
@@ -318,6 +319,8 @@ def main():
 
     for dump_type in DUMP_TYPES:
         api.dump_create(dump_type)
+
+    time.sleep(WAIT_FOR_DUMPS)
 
     dumps = api.get_dumps(refresh=True)
     for dump in dumps:

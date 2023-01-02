@@ -2,8 +2,8 @@
 for details on configuring this script."""
 
 USER = "YOUR USERNAME HERE"  # Name of user account that will be logged in as
-HOSTNAME = "meta.miraheze.org"  # Replace with the hostname of your wiki
-DUMPS_DIRECTORY = r"/path/to/dump/folder"  # Directory data dumps will be downloaded to
+HOSTNAME = "https://meta.miraheze.org"  # Replace with the URL of your wiki
+DUMPS_DIRECTORY = r"."  # Directory data dumps will be downloaded to
 DUMP_TYPES = ["xml"]  # Include dump types here
 # For example, to do both image and xml dumps, use
 # DUMP_TYPES = ['xml', 'image']
@@ -97,6 +97,18 @@ if not (OAUTH2_TOKEN or OAUTH1_TOKEN or PASSWORD):
     sys.exit(1)
 
 
+class OAuth2Auth(requests.auth.AuthBase):
+    """Simple class to add an OAuth2 authorization header to a request."""
+
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, r):
+        """Add Authorization header."""
+        r.headers["Authorization"] = f"Bearer {self.token}"
+        return r
+
+
 class Api:
     """Describes the MediaWiki API.
 
@@ -155,7 +167,7 @@ class Api:
                 attempts += 1
                 return self.handle_resp(
                     SESSION.post(
-                        self.url, params=query, auth=self.oauth if self.oauth else None
+                        self.url, data=query, auth=self.oauth if self.oauth else None
                     )
                 )
             except ConnectionError as err:
@@ -189,7 +201,7 @@ class Api:
         if token_type == "login":
             query.pop("assertuser")  # Can't be this user if we aren't logged in
         resp = self.do_get(query)
-        return self.handle_resp(resp)["query"]["tokens"][f"{token_type}token"]
+        return resp["query"]["tokens"][f"{token_type}token"]
 
     def try_logins(self):
         """Validate login options."""
@@ -197,7 +209,7 @@ class Api:
         test_query.update({"meta": "siteinfo"})
 
         if OAUTH2_TOKEN:
-            self.oauth = OAUTH2_TOKEN
+            self.oauth = OAuth2Auth(OAUTH2_TOKEN)
             try:
                 self.do_get(test_query)
                 return  # Token is good, don't check others
@@ -248,8 +260,8 @@ class Api:
         """Get the information of a dump of the specified type."""
         dumps = self.get_dumps()
         for dump in dumps:
-            if dump.type == dump_type:
-                return dump.link
+            if dump["type"] == dump_type:
+                return dump["link"]
         return None
 
     def dump_create(self, dump_type="xml"):
@@ -308,14 +320,14 @@ def main():
     api = Api()
     dumps = api.get_dumps()
     for dump in dumps:
-        if dump.type in DUMP_TYPES:
-            print(f'NOTICE: A dump of type "{dump.type}" already exists.')
+        if dump["type"] in DUMP_TYPES:
+            print(f'NOTICE: A dump of type "{dump["type"]}" already exists.')
             if DELETE_EXISTING:
-                print(f'NOTICE: Deleting existing dump "{dump.filename}"...')
-                api.dump_delete(dump.type, dump.filename)
+                print(f'NOTICE: Deleting existing dump "{dump["filename"]}"...')
+                api.dump_delete(dump["type"], dump["filename"])
             else:
-                DUMP_TYPES.pop(DUMP_TYPES.index(dump.type))
-                print(f'Skipping dump type "{dump.type}".')
+                DUMP_TYPES.pop(DUMP_TYPES.index(dump["type"]))
+                print(f'Skipping dump type "{dump["type"]}".')
 
     for dump_type in DUMP_TYPES:
         api.dump_create(dump_type)
@@ -324,12 +336,12 @@ def main():
 
     dumps = api.get_dumps(refresh=True)
     for dump in dumps:
-        if dump.type in DUMP_TYPES:
-            print(f'Downloading dump "{dump.filename}".')
-            api.dump_download(dump.link)
+        if dump["type"] in DUMP_TYPES:
+            print(f'Downloading dump "{dump["filename"]}".')
+            api.dump_download(url=dump["link"])
             if DELETE_AFTER_DOWNLOAD:
-                print(f'Deleting dump "{dump.filename}".')
-                api.dump_delete(dump.type, dump.filename)
+                print(f'Deleting dump "{dump["filename"]}".')
+                api.dump_delete(dump["type"], dump["filename"])
 
 
 main()

@@ -1,6 +1,11 @@
 # py-datadump
 Standalone python script for invoking the DataDump extension on Miraheze
 
+# Installation
+Install python on your system (if not already installed). Then simply copy or download the [raw script](https://raw.githubusercontent.com/The-Voidwalker/py-datadump/main/datadump.py) to a file. Configure it (see below) and run.
+
+Note: If you use OAuth1 you will need to install `requests_oauthlib` as an additional dependency. To do this run `pip install requests_oauthlib` or `python -m pip install requests_oauthlib`.
+
 # Configuration
 At a minimum, you will need to configure the script to know your username, the hostname of your wiki, and one or more of the authentication methods.
 

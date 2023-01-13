@@ -1,4 +1,4 @@
-"""Please see https://meta.miraheze.org/wiki/User:Void/DataDump_script
+"""Please see https://github.com/The-Voidwalker/py-datadump/blob/main/README.md
 for details on configuring this script."""
 
 USER = "YOUR USERNAME HERE"  # Name of user account that will be logged in as

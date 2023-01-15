@@ -261,6 +261,8 @@ class Api:
         dumps = self.get_dumps()
         for dump in dumps:
             if dump["type"] == dump_type:
+                if dump["link"] == dump["filename"]:
+                    raise Warning(f'It appears the dump "{dump["filename"]}" has yet to be generated.')
                 return dump["link"]
         return None
 
@@ -301,14 +303,19 @@ class Api:
         """
         if dump_type and not url:
             url = self.get_dump_url(dump_type)
-        filename = DUMPS_DIRECTORY / parse_qs(urlparse(url).query)["dump"][0]
-        if filename.exists():
+        p_url = urlparse(url)
+        if "Special:DataDump&action=download" in url:
+            filename = parse_qs(p_url.query)["dump"][0]
+        else:
+            filename = p_url.path.split("/")[-1]
+        file = DUMPS_DIRECTORY / filename
+        if file.exists():
             raise FileExistsError(
-                f'Cannot download dump to file! File "{filename}" already exists!'
+                f'Cannot download dump to file! File "{file}" already exists!'
             )
         resp = SESSION.get(url, allow_redirects=True)
-        with open(filename, "wb") as file:
-            file.write(resp.content)
+        with open(file, "wb") as f:
+            f.write(resp.content)
 
 
 class ApiError(Exception):
@@ -337,6 +344,7 @@ def main():
     dumps = api.get_dumps(refresh=True)
     for dump in dumps:
         if dump["type"] in DUMP_TYPES:
+            # TODO: If filename == link, dump is not ready for download
             print(f'Downloading dump "{dump["filename"]}".')
             api.dump_download(url=dump["link"])
             if DELETE_AFTER_DOWNLOAD:

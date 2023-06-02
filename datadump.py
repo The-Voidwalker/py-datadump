@@ -280,7 +280,7 @@ class Api:
                 f'Cannot download dump to file! File "{file}" already exists!'
             )
         resp = self.session.get(url, allow_redirects=True)
-        with open(file, "wb") as f:  # pylint: disable=invalid-name
+        with open(file, "wb") as f:
             f.write(resp.content)
 
 

@@ -448,4 +448,14 @@ main()
 
 def test():
     """Testing poor code :)"""
-    foo = {"bar":"baz",'bur':'bell','hee':"hoo","funky":{"stuff":"thing"},"a":'b',"c":"D",'e':"f","ya":"boi","test":"in progress"}
+    foo = {
+        "bar": "baz",
+        "bur": "bell",
+        "hee": "hoo",
+        "funky": {"stuff": "thing"},
+        "a": "b",
+        "c": "D",
+        "e": "f",
+        "ya": "boi",
+        "test": "in progress",
+    }

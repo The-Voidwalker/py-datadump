@@ -132,6 +132,7 @@ class Api:
             except ConnectionError as err:
                 print(f"Attempt {attempts} out of {self.max_retries} failed.")
                 print(err)
+        raise ConnectionError("Maximum retries reached!")
 
     def handle_resp(self, response):
         """Process server response for validity.
